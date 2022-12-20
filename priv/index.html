@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<title>Twitter Clone</title>
+		<style>
+			body {font-family: Arial, Helvetica, sans-serif;}
+			form {border: 3px solid #f1f1f1;}
+			
+			input[type=text], input[type=password] {
+			  width: 50%;
+			  padding: 12px 20px;
+			  margin: 8px 0;
+			  display: inline-block;
+			  border: 1px solid #ccc;
+			  box-sizing: border-box;
+			}
+			
+			#reg {
+			  background-color: #04AA6D;
+			  color: white;
+			  padding: 14px 20px;
+			  margin: 8px 0;
+			  border: none;
+			  cursor: pointer;
+			  width: 60%;
+			}
+
+			#hp {
+			  background-color: #04AA6D;
+			  color: white;
+			  padding: 14px 20px;
+			  margin: 8px 0;
+			  border: none;
+			  cursor: pointer;
+			  width: 100px;
+			}
+			
+			button:hover {
+			  opacity: 0.8;
+			}
+			
+			.container {
+			  padding: 16px;
+			}
+			
+			span.psw {
+			  float: right;
+			  padding-top: 16px;
+			}
+
+			textarea {
+				width: 50%;
+				height: 150px;
+				padding: 12px 20px;
+				box-sizing: border-box;
+				border: 2px solid #ccc;
+				border-radius: 4px;
+				background-color: #f8f8f8;
+				font-size: 16px;
+				resize: none;
+			}
+			</style>
+	</head>
+
+	<body onload="connect()">
+
+	<header>
+		<h1>Twitter Clone</h1>
+		<div id="status"></div>
+	</header>
+
+	<div id="navPanel">
+		<a href="#login">LOGIN</a>
+    	<a href="#register">REGISTER</a>
+	</div>
+
+	<div id="msgPlaceholder">
+	</div>
+
+
+	<!-- REGISTER PAGE -->
+	<div id="registerPage">
+		<br>
+		<h2>Register</h2>
+		<div class="container">
+			<label for="uname"><b>Username</b></label>
+			<input type="text" placeholder="Enter Username" name="uname" id="username">
+			<br>
+			<br>
+			<label for="psw"><b>Password</b></label>
+			<input type="password" placeholder="Enter Password" name="psw" id="password">
+			<br>
+			<br>
+			<button id="reg" type="submit" onclick="registerUser()">Register</button>
+		</div>
+	</div>
+	<!-- LOGIN PAGE -->
+	<div id ="loginpage">
+	<br>
+	<h2>Login</h2>
+	<div class="container">
+		<label for="uname"><b>Username</b></label>
+		<input type="text" placeholder="Enter Username" name="uname" id="lusername">
+		<br>
+		<br>
+		<label for="psw"><b>Password</b></label>
+		<input type="password" placeholder="Enter Password" name="psw" id="lpassword">
+		<br>
+		<br>
+		<button id="reg" type="submit" onclick="login()">Login</button>
+	</div>
+	</div>
+
+<!-- HOME PAGE -->
+<br>
+<div id="homePage">
+	<br>
+	<div id="welcomemsg">
+	</div>
+	<br>
+
+	<div>
+		<div><h2>Tweet</h2></div>
+		<textarea id="tweet" name="tweet" rows="4" cols="50"></textarea>
+		<br>
+		<br>
+		<button id="hp" type="submit" onclick="sendTweet()">Post</button>
+	</div>
+	<br>
+	<div id="myView">
+		<div><h2>My View</h2> <button id="hp" type="submit" onclick="updateTweetsView()">Update</button></div>
+		
+		<div id="myTweetsView"></div>
+		
+		<div><h2>My Tweets</h2></div>
+		
+		<div id="myTweets"></div>
+	</div>
+
+	<br>
+	<div>
+		<div><h2>Follow</h2></div>
+		<input type="text" placeholder="Enter user to follow" name="subscribing" id="subscribing">
+		<button id="hp" type="submit" onclick="subscribeToUser()">Follow</button>
+	</div>
+
+
+	<br>
+	<div>
+		<div><h2>Search by Mentions or HashTags</h2></div>
+		<input type="text" placeholder="Search by Mention or Hashtags" name="search" id="search">
+		<button id="hp" type="Search" onclick="search()">Search</button>
+	</div>
+	<div id="mySearch">
+		<div>Search Results</div>
+		<div id="mySearchView"></div>
+	</div>
+</div>
+
+<nav>
+	<div id="connecting">
+		<!-- <input type='text' id="server" value=""></input>
+		<button type="button" onclick="toggle_connection()">connection</button> -->
+	</div>
+
+	<div id="connected">
+		<!-- <input type='text' id="message" value=""></input>
+		<button type="button" onclick="sendTxt();">send</button> -->
+	</div>
+</nav>
+
+<main id="content">
+	<!-- <button id="clear" onclick="clearScreen()" >Clear text</button> -->
+	<div id="output"></div>
+</main>
+
+<script type="text/javascript">
+
+var pageToShow = "Login";
+var websocket;
+var server = document.getElementById("server");
+var message = document.getElementById("message");
+var connecting = document.getElementById("connecting");
+var connected = document.getElementById("connected");
+var content = document.getElementById("content");
+var output = document.getElementById("output");
+var loginPage = document.getElementById("loginpage");
+var registerPage = document.getElementById("registerPage");
+var homePage = document.getElementById("homePage");
+var userhome = document.getElementById("userhome");
+var navPanel = document.getElementById("navPanel");
+var mySearchView = document.getElementById("mySearchView");
+var username = '';
+
+// server.value = "ws://" + window.location.host + "/websocket";
+connected.style.display = "none";
+content.style.display = "none";
+
+function loadContent(){
+	var contentDiv = document.getElementById("msgPlaceholder");
+	contentDiv.innerHTML = '';
+	fragmentId = location.hash.substr(1);
+	if(fragmentId == "login"){
+		loginPage.style.display = "block";
+		registerPage.style.display = "none";
+		homePage.style.display = "none";
+	}
+	else if(fragmentId == "register"){
+		loginPage.style.display = "none";
+		registerPage.style.display = "block";
+		homePage.style.display = "none";
+	}
+	else if(fragmentId == "home"){
+		loginPage.style.display = "none";
+		registerPage.style.display = "none";
+		homePage.style.display = "block";
+		navPanel.style.display = "none";
+		var welcomemsg = document.getElementById("welcomemsg");
+		welcomemsg.innerHTML += 'Welcome '+ this.username + '!';
+	}
+}
+
+if(!location.hash) {
+	location.hash = "#login";
+}
+
+loadContent();
+
+window.addEventListener("hashchange", loadContent)
+
+function connect()
+{
+	wsHost =  "ws://" + window.location.host + "/websocket";
+	websocket = new WebSocket(wsHost);
+	websocket.onopen = function(evt) { onOpen(evt) };
+	websocket.onerror = function(evt) { onError(evt) };
+
+	registerWebsocket = new WebSocket("ws://" + window.location.host + "/register");
+	registerWebsocket.onopen = function(evt) { onOpen(evt) };
+	registerWebsocket.onmessage = function(evt) { onRegister(evt) };
+	registerWebsocket.onerror = function(evt) { onError(evt) };
+
+	tweetWebsocket = new WebSocket("ws://" + window.location.host + "/tweet");
+	tweetWebsocket.onopen = function(evt) { onOpen(evt) };
+	tweetWebsocket.onmessage = function(evt) { onTweet(evt) };
+	tweetWebsocket.onerror = function(evt) { onError(evt) };
+
+	subscribeWebsocket = new WebSocket("ws://" + window.location.host + "/subscribe");
+	subscribeWebsocket.onopen = function(evt) { onOpen(evt) };
+	subscribeWebsocket.onmessage = function(evt) { onMessage(evt) };
+	subscribeWebsocket.onerror = function(evt) { onError(evt) };
+
+	searchWebsocket = new WebSocket("ws://" + window.location.host + "/search");
+	searchWebsocket.onopen = function(evt) { onOpen(evt) };
+	searchWebsocket.onmessage = function(evt) { showResults(evt) };
+	searchWebsocket.onerror = function(evt) { onError(evt) };
+
+	loginWebsocket = new WebSocket("ws://" + window.location.host + "/login");
+	loginWebsocket.onopen = function(evt) { onOpen(evt) };
+	loginWebsocket.onmessage = function(evt) { onLogin(evt) };
+	loginWebsocket.onerror = function(evt) { onError(evt) };
+
+	tweetviewWebsocket = new WebSocket("ws://" + window.location.host + "/tweetview");
+	tweetviewWebsocket.onopen = function(evt) { onOpen(evt) };
+	tweetviewWebsocket.onmessage = function(evt) { onTweetView(evt) };
+	tweetviewWebsocket.onerror = function(evt) { onError(evt) };
+};
+
+function disconnect() {
+	// websocket.close();
+};
+
+function login(){
+	var userName = document.getElementById("lusername").value;
+	var password = document.getElementById("lpassword").value;
+	loginWebsocket.send(userName+"|"+password);
+	if(userName){
+		this.username = userName
+	}
+}
+
+function registerUser() {
+	// wsHost = "ws://" + window.location.host + "/register";
+	var username = document.getElementById("username").value;
+	var password = document.getElementById("password").value;
+	registerWebsocket.send(username+"|"+password);
+	if(userhome){
+		userhome.innerHTML += 'Registered '+ username + '!';
+	}
+	document.getElementById("username").value = '';
+	document.getElementById("password").value = '';
+};
+
+function sendTweet() {
+	var username = document.getElementById("username").value;
+	var tweetmsg = document.getElementById("tweet").value;
+	tweetWebsocket.send(this.username+"|"+tweetmsg);
+	var myTweets = document.getElementById("myTweets");
+	var newNode = document.createElement('div');
+	newNode.innerHTML += 'Tweeted '+ this.username + ' '+tweetmsg;
+	myTweets.appendChild(newNode);
+	document.getElementById("tweet").value = '';
+};
+
+function subscribeToUser() {
+	var subscribeToUser = document.getElementById("subscribing").value;
+	subscribeWebsocket.send(this.username+"|"+subscribeToUser);
+};
+
+function onRegister(evt){
+	var message  =evt.data.split('|')[0];
+	var msgPlaceholder = document.getElementById("msgPlaceholder");
+	msgPlaceholder.innerHTML = message;
+}
+
+function onLogin(evt){
+	var message  =evt.data.split('|')[0];
+	var tweetsList = evt.data.split('|')[1];
+	if (message === "Invalid username and password"){
+		var msgPlaceholder = document.getElementById("msgPlaceholder");
+		msgPlaceholder.innerHTML = message;
+		msgPlaceholder.style.color = "red";
+	}
+	else if(message === "User Logged In"){
+		location.hash = "#home";
+		updateMyView(tweetsList);
+	}
+	
+}
+
+function updateTweetsView(username){
+	// setInterval(function () {
+	tweetviewWebsocket.send(this.username);
+	// }, 1000);
+}
+
+function onTweet(evt){
+	var message  =evt.data.split('|')[0];
+	var tweetsList = evt.data.split('|')[1];
+	if (message === "Tweet Sent"){
+		var msgPlaceholder = document.getElementById("msgPlaceholder");
+		msgPlaceholder.innerHTML = message;
+		updateMyView(tweetsList);
+	}
+	
+}
+function updateMyView(evt){
+	var tweetsList =  evt.data;
+}
+
+
+function search() {
+	// wsHost = "ws://" + window.location.host + "/register";
+	var username = document.getElementById("username").value;
+	var search = document.getElementById("search").value;
+	var searchBy = '';
+	var replace = '';
+	if(search.includes("#")){
+		searchBy = 'HashTags';
+		replace = "#";
+	}
+	else if(search.includes("@")){
+		searchBy = 'Mentions';
+		replace = "@";
+	}
+	searchWebsocket.send(this.username+"|"+search.replace(replace,'')+"|"+searchBy);
+};
+
+
+function toggle_connection(){
+	if (websocket && websocket.readyState == websocket.OPEN) {
+		// disconnect();
+	} else {
+		connect();
+	};
+};
+
+function updateMyView(myView){
+	// var myTweetsView = document.getElementById("myTweetsView");
+	// myTweetsView.innerHTML = myView;
+}
+
+function sendTxt() {
+	if (websocket.readyState == websocket.OPEN) {
+		var msg = message.value;
+		websocket.send(msg);
+		showScreen('sending: ' + msg);
+	} else {
+		showScreen('websocket is not connected');
+	};
+};
+
+function onOpen(evt) {
+	connecting.style.display = "none";
+	connected.style.display = "";
+	content.style.display = "";
+};
+
+function showResults(evt){
+	var result = evt.data;
+	const tweetRegexp = /"(.*?)"/g;
+	var tweetArr = [...result.matchAll(tweetRegexp)].map( function(elem){
+		return elem[1];
+	});
+	var mySearchView = document.getElementById("mySearchView");
+	while (mySearchView.lastElementChild) {
+		mySearchView.removeChild(mySearchView.lastElementChild);
+ 	}
+	tweetArr.forEach((element, i) => {
+		if((i+1)%2 === 0){
+			var newNode = document.createElement('div');
+			newNode.innerHTML += " tweet:  "+ element;
+			mySearchView.appendChild(newNode);
+		}
+	});
+}
+
+function onTweetView(evt){
+	var result = evt.data;
+	const userRegexp = /{(.*?),/g;
+	var userArr = [...result.matchAll(userRegexp)].map( function(elem){
+		return elem[1];
+	});
+	const tweetRegexp = /"(.*?)"/g;
+	var tweetArr = [...result.matchAll(tweetRegexp)].map( function(elem){
+		return elem[1];
+	});
+	var myTweetsView = document.getElementById("myTweetsView");
+	while (myTweetsView.lastElementChild) {
+		myTweetsView.removeChild(myTweetsView.lastElementChild);
+ 	}
+	tweetArr.forEach((element, i) => {
+		var newNode = document.createElement('div');
+		newNode.innerHTML += userArr[i] +" tweeted "+ element;
+		myTweetsView.appendChild(newNode);
+	});
+	
+}
+
+function onClose(evt) {
+	// showScreen('<span style="color: red;">DISCONNECTED</span>');
+};
+
+function onMessage(evt) {
+	showScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
+};
+
+function onError(evt) {
+	showScreen('<span style="color: red;">ERROR: ' + evt.data + '</span>');
+};
+
+function showScreen(html) {
+	var el = document.createElement("p");
+	el.innerHTML = html;
+	output.insertBefore(el, output.firstChild);
+};
+
+function clearScreen() {
+	output.innerHTML = "";
+};
+
+</script>
+</body>
+</html> 
