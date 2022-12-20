@@ -1,5 +1,3 @@
-# DOSP_TwitterClone
-
 # Project 4: Twitter Engine Clone
 
 ### Authors:
