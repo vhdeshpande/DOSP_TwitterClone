@@ -65,8 +65,7 @@ entry into the user_table_list
 * `/tweetview` – The interface fetches tweet feeds for the user based on the user’s
 subscription preferences
 * `/search` – The interface supports the search functionality based on hashtags and mentions
-### WebSocket’s:
-The Cowboy WebSocket framework is used in the project to create the interfaces for managing WebSocket connections. Cowboy is a modern and fast HTTP server. Because all activities requiring an HTTP request can only be handled in init, the WebSocket sub-protocol is chosen during init. It employs messages and frames for communication. Every time a frame is received, the `websocket_handle` callback is invoked. When a message is received, the `webSocket _info` callback is invoked. Using these callbacks, we may transmit numerous frames. The WebSocket implementation is supported by modules `webSocket_app` which defines the interfaces and routes the request to the handler accordingly and `webSocket_sup` which acts as the supervisor module. The handler defines the `websocket_init`, `websocket_handle`, and `websocket_info`.
+
 ### Technologies Used:
 * **Front-end:** The front-end uses JavaScript framework utilizing the Cowboy framework to support WebSocket connection with Erlang through the defined handlers
 * **Back-end:** The back-end utilizes Erlang with interfaces supported in the component `twitter_engine_client_utils` and maintained in the component `twitter_engine_server_utils` using the Gen Server and ETS modules.
