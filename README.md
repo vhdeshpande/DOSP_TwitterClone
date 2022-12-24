@@ -39,17 +39,6 @@ The simulator replicates the number of users that are being registered. The simu
 * Thus the subscribers will be part of this set according to the following formula provided the
 number of subscribers does not exceed n-1.
 This is being done with an index value and the total subscribers are divided by this value. The subscribe function in the client utils is being called on all the subscribers according to the Zipf law.
-### Architecture Details:
-* **Register:** Users can use register themselves using this method. This information is then sent to the server side where the user information is inserted in an ETS table.
-* **Login:** A user can use login if they have logged out or have recently registered. This data is sent to the server where a table stores the logged-in and logged-out as atoms true or false.
-* Subscribe: This method takes two arguments. A user can follow any other user. This data is stored in a table in the form of a tuple in two tables. The first table stores { subscribes } and the second stores { subscribed to }. This makes it easier to retrieve data of followers as well as a list of whom the user follows.
-* **Tweet:** After a user is specified the user can input a tweet in the form of a string. This data is then stored in a table of all tweets as a tuple { user, tweet }. This tweet is also parsed for any Mentions and Hashtags. If any Hashtags are found then the tweet along with the tag is stored in the table that can be looked up with the hashtag value. If any mentions are found then the tweet is stored with the mentioned user name and this table can later be looked up by the User name.
-* **Timeline:** This method is used to retrieve all tweets and the retweets that a user has got from the people that they follow. This timeline will consist of tweets stored in the table in which we have stored tweets from
-* **Retweet:** All tweets are associated with a unique identifier. A user can browse through all tweets of another user and can choose to retweet any tweet they can using the tweet’s unique identifier. This unique identifier is then used to retrieve the tweet and it is stored under the current user in the retweet table.
-* **Search by Hashtag:** The user enters the tag with which they want to parse the set of all tweets. It then looks up the table where all tweets are stored with the index of the tag and returns the complete list of such tweets.
-* **Search by Mentions:** The user enters the mentions that they want to parse the complete set of tweets with. Then in the mentions table, we look up all tweets with the parsed value of the mentioned user name.
-* **Log out:** The user can log out by using the logout method. We will flip the variable in the table which stores the current status of the user. The user will then need to log in before using any of the functionality.
-
 ### Websocket Implementation
 The aim of the project is to implement a Twitter engine clone integrating a WebSocket interface with the Part 1 project enabling the client-server implementation. The project uses the Cowboy WebSocket framework to integrate the client with the server where the WebSocket connection is supported by the Cowboy WebSocket handlers.
 ### Functionality:
