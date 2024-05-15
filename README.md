@@ -1,8 +1,5 @@
 # Project 4: Twitter Engine Clone
 
-### Authors:
-* Vaibhavi Deshpande
-* Ishan Kunkolikar
 ### Pre-requisites:
 * Erlang/OTP version - 25.1
 * Cowboy version – 2.9
